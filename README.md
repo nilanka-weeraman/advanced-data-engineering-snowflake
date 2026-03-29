@@ -55,7 +55,7 @@ USE SCHEMA public;
 CREATE OR REPLACE SECRET course_repo.public.github_pat
   TYPE = password
   USERNAME = 'nilanka-weeraman'
-  PASSWORD = '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';
+  PASSWORD = 'xxxxx';
 
 -- Create the API integration
 CREATE OR REPLACE API INTEGRATION git_api_integration

@@ -32,8 +32,71 @@ All of the code that you need to successfully complete the course is within this
 
 * **module-2** – Corresponds to "Module 2: Observability with Snowflake" in the course.
 
-The course instructor will also be sure to reference the exact folder and name of the file to use throughout the course, so that you can follow along.
 
-#### Reporting issues or errata
 
-If you encounter technical issues with this code as you complete the course (i.e. typos, missing code, broken links, etc.), please report those issues in the course through Coursera. Ensure the issue contains sufficient detail so that it can be properly addressed.
+### Module 1 - Steps followed
+
+```text
+ git remote set-url origin https://github.com/nilanka-weeraman/advanced-data-engineering-snowflake
+
+------------------------------------------------------
+-- correct the marketplace fetched data table names 
+------------------------------------------------------
+```
+
+#### create git PAT secret, git api integrtion & setup repository on Snowflake IDE
+
+```text
+
+USE ROLE accountadmin;
+CREATE DATABASE course_repo;
+USE SCHEMA public;   
+-- Create credentials
+CREATE OR REPLACE SECRET course_repo.public.github_pat
+  TYPE = password
+  USERNAME = 'nilanka-weeraman'
+  PASSWORD = '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';
+
+-- Create the API integration
+CREATE OR REPLACE API INTEGRATION git_api_integration
+  API_PROVIDER = git_https_api
+  API_ALLOWED_PREFIXES = ('https://github.com/nilanka-weeraman') -- URL to your GitHub profile
+  ALLOWED_AUTHENTICATION_SECRETS = (github_pat)
+  ENABLED = TRUE;
+
+-- Create the git repository object
+CREATE OR REPLACE GIT REPOSITORY course_repo.public.advanced_data_engineering_snowflake
+  API_INTEGRATION = git_api_integration -- Name of the API integration defined above
+  ORIGIN = 'https://github.com/nilanka-weeraman/advanced-data-engineering-snowflake.git' -- Insert URL of forked repo
+  GIT_CREDENTIALS =  course_repo.public.github_pat;
+
+-- List the git repositories
+SHOW GIT REPOSITORIES;
+```
+
+### create staging & prod database objects, tables, views, procs, streams using script in git
+
+```text
+ snow git fetch advanced_data_engineering_snowflake --database=course_repo --schema=Public
+
+
+ snow git execute @advanced_data_engineering_snowflake/branches/main/module-1/hamburg_weather/pipeline/objects/ -D "env='STAGING'"    
+   --database=course_repo --schema=Public
+ snow git execute @advanced_data_engineering_snowflake/branches/main/module-1/hamburg_weather/pipeline/objects/ -D "env='PROD'"       
+   --database=course_repo --schema=Public
+```
+
+#### fix the issue in the load_tasty_bytes.sql file for DDL command    
+
+```text
+ git fetch
+ git switch fix-missing-data-2
+ git branch
+ git status
+ git add -p
+ git commit -m "fix missing data"
+ git push origin fix-missing-data-2
+```
+
+#### create a pull request in git from 'fix-missing-data-2' to 'statging'
+

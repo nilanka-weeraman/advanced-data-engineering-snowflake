@@ -6,7 +6,7 @@ USE SCHEMA raw_pos;
 ALTER ACCOUNT SET LOG_LEVEL = 'INFO';
 
 -- Configure traces:
-
+alter session set trace_level =ALWAYS;
 
 -- Create the stored procedure, define its logic with Snowpark for Python, write sales to raw_pos.daily_sales_hamburg_t
 CREATE OR REPLACE PROCEDURE staging_tasty_bytes.raw_pos.process_order_headers_stream()
@@ -14,7 +14,7 @@ CREATE OR REPLACE PROCEDURE staging_tasty_bytes.raw_pos.process_order_headers_st
   LANGUAGE PYTHON
   RUNTIME_VERSION = '3.10'
   HANDLER ='process_order_headers_stream'
-  PACKAGES = ('snowflake-snowpark-python')
+  PACKAGES = ('snowflake-snowpark-python','snowflake-telemetry-python')
 AS
 $$
 import snowflake.snowpark.functions as F
@@ -34,11 +34,14 @@ def process_order_headers_stream(session: Session) -> float:
     logger.info("Starting process_order_headers_stream procedure")
 
     # Set initial span attributes for the entire procedure:
+    telemetry.set_span_attribute("procedure","process_order_headers_stream")
 
     telemetry.set_span_attribute("trace_id", trace_id)
     
     try:
         # Begin stream query span:
+        telemetry.set_span_attribute("process_step","query_stream")
+        telemetry.add_event("query_begin",{"description":"Starting to query order_header_stream"})
 
 
         # Query the stream
@@ -46,6 +49,7 @@ def process_order_headers_stream(session: Session) -> float:
         recent_orders = session.table("order_header_stream").filter(F.col("METADATA$ACTION") == "INSERT")
 
         # Record query completion event:
+        telemetry.add_event("query_complete",{"description":"complete query of order_header_stream"})
 
         # Begin location filtering span
         telemetry.set_span_attribute("process_step", "filter_locations")

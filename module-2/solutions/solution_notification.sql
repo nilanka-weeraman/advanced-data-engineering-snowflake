@@ -1,15 +1,14 @@
 USE ROLE accountadmin;
-
 USE DATABASE staging_tasty_bytes;
 USE SCHEMA public;
 
 -- Create an email integration 
-CREATE OR REPLACE NOTIFICATION INTEGRATION email_notification_int
+create or replace notification integration email_notification_int
 TYPE = EMAIL
 ENABLED = TRUE
-ALLOWED_RECIPIENTS = ('ADD EMAIL ADDRESS');  -- Update the recipient's email here
+ALLOWED_RECIPIENTS = ('NILANKA.WEERAMAN@ADELAIDE.EDU.AU');  -- Update the recipient's email here
 
-CREATE OR REPLACE PROCEDURE staging_tasty_bytes.raw_pos.notify_data_quality_team()
+CREATE OR REPLACE PROCEDURE STAGING_TASTY_BYTES.RAW_POS.NOTIFY_DATA_QUALITY_TEAM()
 RETURNS STRING
 LANGUAGE PYTHON
 RUNTIME_VERSION = '3.10'
@@ -112,10 +111,10 @@ def notify_data_quality_team(session: Session) -> str:
     </html>
     """
     
-    # Send the email
+    # Send the email:
     session.call("system$send_email",
                  "email_notification_int",
-                 "ADD EMAIL ADDRESS",
+                 "nilanka.weeraman@adelaide.edu.au",
                  f"ALERT: {record_count} orders with NULL values detected",
                  email_content,
                  "text/html")
